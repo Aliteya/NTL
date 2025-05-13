@@ -1,0 +1,9 @@
+aiogram
+pydantic_settings
+langchain
+langchain_community
+sentence-transformers 
+langchain-huggingface
+python-docx
+faiss-cpu
+langchain_openai
