@@ -46,13 +46,36 @@ prompt = PromptTemplate(
     template=qa_prompt_template
 )
 
+from langchain.schema import HumanMessage
 
 async def get_answer(documents: List, message: Message):
     logger.info(f"Received {len(documents)} documents for processing.")
 
+    llm = get_openrouter_llm()
+
     if not documents:
-        logger.error("Empty documents list received.")
-        raise ValueError("Documents list is empty.")
+        logger.warning("Documents list is empty, querying LLM without context.")
+        context = ""
+        formatted_prompt = prompt.format(context=context, question=message.text)
+        try:
+            # Вариант 1: просто строка
+            # result = await llm.ainvoke(formatted_prompt)
+
+            # Вариант 2: список сообщений (рекомендуется для чат-моделей)
+            messages = [HumanMessage(content=formatted_prompt)]
+            result = await llm.ainvoke(messages)
+
+            logger.info("Query executed successfully without documents.")
+            return {
+                "result": result.content if hasattr(result, "content") else str(result),
+                "source_documents": []
+            }
+        except Exception as e:
+            logger.exception(f"Error running query without documents: {e}")
+            raise
+
+    # --- остальной код для случая с документами ---
+
 
     try:
         docs = [Document(page_content=d["text"], metadata=d.get("metadata", {})) for d in documents]
@@ -74,8 +97,8 @@ async def get_answer(documents: List, message: Message):
     except Exception as e:
         logger.exception(f"Error creating FAISS vectorstore: {e}")
         raise
+
     try:
-        llm = get_openrouter_llm()
         qa_chain = RetrievalQA.from_chain_type(
             llm=llm,
             chain_type="stuff",
