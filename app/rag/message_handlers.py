@@ -1,6 +1,5 @@
 import io
 from aiogram.types import Message
-from aiogram.enums import ParseMode
 from aiogram.fsm.context import FSMContext
 from docx import Document
 
@@ -47,7 +46,10 @@ async def document_handler(message: Message, state: FSMContext):
         logger.warning(f"DOCX file {filename} is empty or contains no text")
         await message.answer("DOCX file is empty or does not contain text.")
         return
-
+    
+    data = await state.get_data()
+    documents = data.get("documents", [])
+    
     documents.append({
         "text": text,
         "metadata": {
