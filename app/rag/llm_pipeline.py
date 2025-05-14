@@ -58,10 +58,6 @@ async def get_answer(documents: List, message: Message):
         context = ""
         formatted_prompt = prompt.format(context=context, question=message.text)
         try:
-            # Вариант 1: просто строка
-            # result = await llm.ainvoke(formatted_prompt)
-
-            # Вариант 2: список сообщений (рекомендуется для чат-моделей)
             messages = [HumanMessage(content=formatted_prompt)]
             result = await llm.ainvoke(messages)
 
@@ -73,9 +69,6 @@ async def get_answer(documents: List, message: Message):
         except Exception as e:
             logger.exception(f"Error running query without documents: {e}")
             raise
-
-    # --- остальной код для случая с документами ---
-
 
     try:
         docs = [Document(page_content=d["text"], metadata=d.get("metadata", {})) for d in documents]
